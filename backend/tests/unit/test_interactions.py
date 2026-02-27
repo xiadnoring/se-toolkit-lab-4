@@ -31,3 +31,35 @@ def test_filter_excludes_interaction_with_different_learner_id() -> None:
     assert len(result) == 2
     assert result[0].id == 1
     assert result[1].id == 2
+
+
+def test_filter_returns_empty_when_no_interactions_match() -> None:
+    interactions = [_make_log(1, 1, 1), _make_log(2, 2, 2)]
+    result = _filter_by_item_id(interactions, 999)
+    assert result == []
+
+
+def test_filter_does_not_mutate_input_list() -> None:
+    interactions = [_make_log(1, 1, 1)]
+    original = interactions.copy()
+    _ = _filter_by_item_id(interactions, 1)
+    assert interactions == original
+
+
+def test_filter_handles_zero_and_negative_item_ids() -> None:
+    interactions = [_make_log(1, 1, 0), _make_log(2, 2, -1), _make_log(3, 3, 1)]
+    assert _filter_by_item_id(interactions, 0) == [interactions[0]]
+    assert _filter_by_item_id(interactions, -1) == [interactions[1]]
+
+
+def test_filter_with_non_integer_item_id_returns_empty() -> None:
+    interactions = [_make_log(1, 1, 1)]
+    assert _filter_by_item_id(interactions, "1") == []
+    assert _filter_by_item_id(interactions, 1.0) == []
+
+
+def test_filter_with_large_item_id_values() -> None:
+    big = 10 ** 18
+    interactions = [_make_log(1, 1, big)]
+    assert _filter_by_item_id(interactions, big) == interactions
+    assert _filter_by_item_id(interactions, big + 1) == []
